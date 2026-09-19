@@ -40,8 +40,9 @@ agent or a phone with nothing but the password.
 ## Relationship to the source presentation
 
 The deck is a restyled web version of `PowerBee-mini-power-generator.pdf` (18
-slides, kept in Google Drive). The wording is transcribed verbatim; only the
-presentation changed.
+slides, kept in Google Drive). The wording is transcribed verbatim, with one
+exception: the raise figures are withheld until the round is settled, because the
+PDF's own slides 11 and 17 contradict each other on them.
 
 Characters the PDF's subset fonts mangle on extraction (`€`, `CO₂`, apostrophes,
 Polish diacritics in surnames) are restored, and every such repair is listed in
