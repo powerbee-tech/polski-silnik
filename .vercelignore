@@ -3,5 +3,6 @@ content/
 
 # Build tooling and docs are not part of the served site.
 build.mjs
+og-template.html
 README.md
 .gitignore
