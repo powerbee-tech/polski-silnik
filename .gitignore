@@ -2,3 +2,4 @@
 
 # Plaintext source of the document — must never be committed to a public repo.
 content/
+.vercel
