@@ -1,0 +1,4 @@
+.DS_Store
+
+# Plaintext source of the document — must never be committed to a public repo.
+content/
