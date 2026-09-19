@@ -30,6 +30,8 @@
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
 :root {
   --black:   #0B0D0F;
   --black-2: #131619;
@@ -253,9 +255,58 @@ function render(html) {
   document.open();
   document.write(html);
   document.close();
+  fitToScreen();
+  window.addEventListener('load', containWideTables);
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
+  }
+}
+
+// document.write() replaces this page with the decrypted one, head and all, so
+// nothing the gate declared reaches the document the reader actually ends up
+// on. Restate the mobile metrics there: a viewport for the phone to lay the
+// document out against, no text inflation on top of it, and nothing wide enough
+// to push the layout past the screen. Any of the three opens the document
+// zoomed in, with the full width a pinch away.
+function fitToScreen() {
+  const head = document.head || document.documentElement;
+
+  // A viewport that was parsed out of the written markup is inert — only
+  // inserting the element now makes the browser act on it.
+  for (const stale of document.querySelectorAll('meta[name="viewport"]')) stale.remove();
+
+  const viewport = document.createElement('meta');
+  viewport.name = 'viewport';
+  viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+  head.appendChild(viewport);
+
+  const style = document.createElement('style');
+  style.textContent = [
+    'html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }',
+    'body { overflow-wrap: break-word; }',
+    'img, video, canvas, iframe { max-width: 100%; height: auto; }',
+    'pre { overflow-x: auto; }',
+    '[data-fit-scroll] { max-width: 100%; overflow-x: auto; }'
+  ].join(' ');
+  head.appendChild(style);
+
+  containWideTables();
+}
+
+// A table too wide for the screen widens the whole layout with it, so give it
+// its own scroll box — but only once it really does not fit, so that nothing
+// moves on a screen with room for it.
+function containWideTables() {
+  for (const table of document.querySelectorAll('table')) {
+    const parent = table.parentElement;
+    if (!parent || parent.hasAttribute('data-fit-scroll')) continue;
+    if (table.getBoundingClientRect().width <= parent.clientWidth + 1) continue;
+
+    const box = document.createElement('div');
+    box.setAttribute('data-fit-scroll', '');
+    parent.insertBefore(box, table);
+    box.appendChild(table);
   }
 }
 
