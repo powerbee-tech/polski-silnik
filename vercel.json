@@ -1,5 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/powerbee-visionary-launch",
+      "destination": "https://powerbee.tech/",
+      "statusCode": 301
+    },
+    {
+      "source": "/powerbee-visionary-launch/:path*",
+      "destination": "https://powerbee.tech/",
+      "statusCode": 301
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
