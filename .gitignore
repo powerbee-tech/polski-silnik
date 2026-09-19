@@ -1,5 +1,6 @@
 .DS_Store
 
-# Plaintext source of the document — must never be committed to a public repo.
+# Plaintext sources — must never be committed to a public repo. Unanchored, so
+# it covers both the document at the root and the deck in deck/.
 content/
 .vercel
