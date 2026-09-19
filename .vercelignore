@@ -1,8 +1,10 @@
-# Plaintext source of the document — must never be uploaded or served.
+# Plaintext sources — must never be uploaded or served. Unanchored, so these
+# cover both the document at the root and the deck in deck/.
 content/
 
 # Build tooling and docs are not part of the served site.
 build.mjs
+unbuild.mjs
 og-template.html
 README.md
 .gitignore
