@@ -17,6 +17,11 @@ const ITERATIONS = 310000;
 // Link previews need absolute URLs. Point this at whichever host is canonical.
 const SITE_URL = (process.env.SITE_URL ?? 'https://polski-silnik.vercel.app').replace(/\/$/, '');
 
+// Preview metadata below carries the project name only — the hostname already
+// reveals it. Never put figures, patents or technical claims there: previews are
+// fetched by third-party servers and shown to anyone holding the link, password
+// or not.
+
 const password = process.argv[2] ?? process.env.PAGE_PASSWORD;
 if (!password) {
   console.error('Password required:  node build.mjs "<password>"');
@@ -47,28 +52,26 @@ const shell = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Protected document</title>
+<title>Polish Engine &mdash; General Information on the Engine Project</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0B0D0F">
 <link rel="canonical" href="${SITE_URL}/">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 
-<!-- Link preview. Deliberately says nothing about the document's contents,
-     since previews are fetched by third parties and shown to any recipient. -->
-<meta name="description" content="Confidential document. A password is required to view it.">
+<meta name="description" content="General Information on the Engine Project. Confidential — internal use only. A password is required to view this document.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="IBS">
-<meta property="og:title" content="Protected document">
-<meta property="og:description" content="Confidential — internal use only. A password is required to view this document.">
+<meta property="og:title" content="Polish Engine">
+<meta property="og:description" content="General Information on the Engine Project. Confidential — internal use only. A password is required to view this document.">
 <meta property="og:url" content="${SITE_URL}/">
 <meta property="og:image" content="${SITE_URL}/assets/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Protected document — confidential, internal use only.">
+<meta property="og:image:alt" content="Polish Engine — General Information on the Engine Project. Confidential, internal use only.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Protected document">
-<meta name="twitter:description" content="Confidential — internal use only. A password is required to view this document.">
+<meta name="twitter:title" content="Polish Engine">
+<meta name="twitter:description" content="General Information on the Engine Project. Confidential — internal use only. A password is required to view this document.">
 <meta name="twitter:image" content="${SITE_URL}/assets/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

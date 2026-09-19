@@ -2,8 +2,10 @@
 <!--
   Source for assets/og.png — the link-preview card.
   Render at exactly 1200x630 and screenshot it, then save over assets/og.png.
-  Deliberately contains no document content: link previews are fetched by
-  third-party servers and shown to anyone who receives the link.
+
+  Carries the project name and nothing else: the hostname already reveals it,
+  but previews are fetched by third-party servers and shown to anyone holding
+  the link, so no figures, patents or technical claims belong here.
 -->
 <html lang="en">
 <head>
@@ -115,12 +117,20 @@ body {
 }
 
 h1 {
-  font-size: 92px;
+  font-size: 108px;
   font-weight: 400;
   line-height: 1.02;
-  letter-spacing: .012em;
+  letter-spacing: .01em;
   text-transform: uppercase;
   color: var(--white);
+}
+
+.sub {
+  margin-top: 26px;
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: .04em;
+  color: var(--gray);
 }
 
 .bracket {
@@ -182,7 +192,8 @@ h1 {
 
   <div class="inner">
     <div class="eyebrow">Restricted</div>
-    <h1>Protected<br>Document</h1>
+    <h1>Polish Engine</h1>
+    <p class="sub">General Information on the Engine Project</p>
     <div class="bracket"><span class="b">[</span> Confidential &mdash; internal use only <span class="b">]</span></div>
   </div>
 
