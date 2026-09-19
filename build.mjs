@@ -49,128 +49,167 @@ const shell = `<!DOCTYPE html>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg: #faf9f6; --surface: #fff; --ink: #17171a; --ink-soft: #5c5c68;
-  --ink-faint: #8a8a95; --line: #e6e2da; --accent: #b57508;
-  --accent-bg: rgba(181,117,8,.09); --danger: #b3261e;
-  --shadow: 0 1px 2px rgba(23,23,26,.04), 0 12px 32px rgba(23,23,26,.07);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0e0e12; --surface: #16161c; --ink: #e9e7e2; --ink-soft: #a2a0ab;
-    --ink-faint: #75737e; --line: rgba(255,255,255,.09); --accent: #f0ab2e;
-    --accent-bg: rgba(240,171,46,.12); --danger: #f2897f;
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.3);
-  }
+  --black:   #0B0D0F;
+  --black-2: #131619;
+  --slate:   #4C5A66;
+  --white:   #F7FFFF;
+  --white-2: #E6F5F5;
+  --gray:    #AABBBD;
+  --red:     #FF073A;
+  --red-3:   #A60525;
+  --line:      rgba(76, 90, 102, .38);
+  --line-soft: rgba(76, 90, 102, .18);
 }
 
 body {
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 24px;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--black);
+  color: var(--white-2);
+  font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 40% at 85% -5%, rgba(255, 7, 58, .12), transparent 70%),
+    radial-gradient(45% 35% at -5% 100%, rgba(166, 5, 37, .14), transparent 70%);
+}
+
 .gate {
+  position: relative;
   width: 100%;
-  max-width: 400px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 36px 34px;
-  box-shadow: var(--shadow);
+  max-width: 410px;
+  background: linear-gradient(180deg, var(--black-2), rgba(19, 22, 25, .5));
+  border: 1px solid var(--line-soft);
+  padding: 38px 36px;
 }
 
-.lock {
-  width: 38px; height: 38px;
-  display: grid; place-items: center;
-  border-radius: 9px;
-  background: var(--accent-bg);
-  color: var(--accent);
-  margin-bottom: 20px;
+.gate::before,
+.gate::after {
+  content: "";
+  position: absolute;
+  width: 16px; height: 16px;
+  border-style: solid;
+  border-color: var(--red);
 }
 
-h1 { font-size: 1.12rem; font-weight: 600; letter-spacing: -.01em; }
+.gate::before { top: -1px;    left: -1px;  border-width: 1px 0 0 1px; }
+.gate::after  { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-bottom: 22px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 0; height: 0;
+  border-left: 5px solid var(--red);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  flex: none;
+}
+
+h1 {
+  font-size: 1.16rem;
+  font-weight: 400;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--white);
+}
 
 .hint {
-  margin-top: 8px;
-  font-size: .89rem;
-  line-height: 1.6;
-  color: var(--ink-soft);
+  margin-top: 14px;
+  font-size: .83rem;
+  line-height: 1.75;
+  color: var(--gray);
 }
 
-form { margin-top: 24px; display: grid; gap: 12px; }
+form { margin-top: 26px; display: grid; gap: 12px; }
 
 input {
   width: 100%;
   font: inherit;
-  font-size: .95rem;
-  color: var(--ink);
-  background: var(--bg);
+  font-size: .9rem;
+  letter-spacing: .1em;
+  color: var(--white);
+  background: rgba(11, 13, 15, .7);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px 14px;
-  transition: border-color .15s, box-shadow .15s;
+  padding: 13px 15px;
+  transition: border-color .16s, box-shadow .16s;
 }
+
+input::placeholder { color: var(--slate); letter-spacing: .18em; text-transform: uppercase; font-size: .74rem; }
 
 input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-bg);
+  border-color: var(--red);
+  box-shadow: 0 0 0 2px rgba(255, 7, 58, .16);
 }
 
 button {
   font: inherit;
-  font-size: .93rem;
+  font-size: .72rem;
   font-weight: 600;
-  color: #fff;
-  background: var(--accent);
-  border: none;
-  border-radius: 8px;
-  padding: 12px 16px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--red-3);
+  border: 1px solid var(--red);
+  padding: 13px 16px;
   cursor: pointer;
-  transition: opacity .15s;
+  transition: background .16s;
 }
 
-button:hover { opacity: .88; }
-button:disabled { opacity: .55; cursor: default; }
+button:hover { background: var(--red); }
+button:disabled { opacity: .5; cursor: default; }
 
 .msg {
-  min-height: 1.2em;
-  font-size: .85rem;
-  color: var(--danger);
+  min-height: 1.3em;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--red);
 }
 
-.msg[data-busy] { color: var(--ink-faint); }
+.msg[data-busy] { color: var(--slate); }
 
 footer {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-  font-size: .76rem;
-  line-height: 1.6;
-  color: var(--ink-faint);
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-soft);
+  font-size: .68rem;
+  line-height: 1.8;
+  letter-spacing: .02em;
+  color: var(--slate);
 }
 </style>
 </head>
 <body>
 
 <div class="gate">
-  <div class="lock" aria-hidden="true">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <rect x="4" y="11" width="16" height="10" rx="2"/>
-      <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
-    </svg>
-  </div>
+  <div class="eyebrow">Restricted</div>
 
   <h1>Protected document</h1>
   <p class="hint">This document is confidential and for internal use only. Enter the password to continue.</p>
