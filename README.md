@@ -17,6 +17,17 @@ node build.mjs "<password>"
 That rewrites `index.html`. Commit and push it; GitHub Pages serves it from
 `main`. Changing the password is the same command with a new value.
 
+## Relationship to the source document
+
+The rendered page is not a byte-for-byte copy of its source `.docx`. Some
+departures are deliberate: added rows, typography handled in CSS, and repairs to
+line breaks that split words mid-sentence in the original.
+
+The itemised list of those departures lives in `content/DEVIATIONS.md`, next to
+the plaintext source, because naming them means quoting the document. Like
+`content/page.html`, it is gitignored and is never published. Read it before
+concluding that something on the page is a transcription error.
+
 ## Notes
 
 - Requires Node 18+ (uses the built-in Web Crypto API). No dependencies.
