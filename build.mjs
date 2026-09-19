@@ -15,7 +15,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const ITERATIONS = 310000;
 
 // Link previews need absolute URLs. Point this at whichever host is canonical.
-const SITE_URL = (process.env.SITE_URL ?? 'https://polski-silnik.vercel.app').replace(/\/$/, '');
+const SITE_URL = (process.env.SITE_URL ?? 'https://powerbee.tech').replace(/\/$/, '');
 
 // Preview metadata below carries the project name only — the hostname already
 // reveals it. Never put figures, patents or technical claims there: previews are
