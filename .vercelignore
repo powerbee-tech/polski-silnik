@@ -1,0 +1,7 @@
+# Plaintext source of the document — must never be uploaded or served.
+content/
+
+# Build tooling and docs are not part of the served site.
+build.mjs
+README.md
+.gitignore
