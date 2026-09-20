@@ -58,11 +58,24 @@ cover and the closing page — carry `class="bleed"` and are exempt.
 
 ## Fonts
 
-Sora is self-hosted in `assets/` as the two woff2 subsets Google serves
-(latin and latin-ext; the latter carries the Polish diacritics and the German
-umlaut). A `<link>` to fonts.googleapis.com would not be fetched when Chrome
-prints from a local file, and the PDF would ship without its typeface. `assets/`
-is served unencrypted, so it holds fonts and nothing else.
+Sora is self-hosted in `assets/`: a `<link>` to fonts.googleapis.com would not
+be fetched when Chrome prints from a local file, and the PDF would ship without
+its typeface. `assets/` is served unencrypted, so it holds fonts and nothing
+else.
+
+The four files are static instances — weight 400 and 600, the only two the book
+uses, each split across Google's latin and latin-ext ranges — cut from the
+upstream Sora variable font with `fonttools`. The instancing is what makes the
+export printable. Given a variable font, Chrome cannot subset it and instead
+embeds every glyph as a Type 3 procedure, which prepress RIPs handle badly; the
+static faces come out as ordinary CIDFontType2 subsets.
+
+For the same reason the book sets no character Sora does not carry. U+2265 was
+added to the latin range for the single "≥80%", and the marks that would
+otherwise have pulled in a fallback face — the list bullets, the timeline keys,
+the "before → after" arrows in the number cards — are drawn in CSS from the
+page's own square-and-triangle vocabulary. The finished PDF reports two fonts,
+Sora Regular and Sora SemiBold, both embedded.
 
 ## Relationship to the deck
 
