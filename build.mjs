@@ -17,10 +17,11 @@ const ITERATIONS = 310000;
 // Link previews need absolute URLs. Point this at whichever host is canonical.
 const SITE_URL = (process.env.SITE_URL ?? 'https://powerbee.tech').replace(/\/$/, '');
 
-// Preview metadata below carries the project name only — the hostname already
-// reveals it. Never put figures, patents or technical claims there: previews are
-// fetched by third-party servers and shown to anyone holding the link, password
-// or not.
+// Everything outside the encrypted payload is public: the gate markup, the
+// metadata below and the link preview. It is deliberately limited to the project
+// name, the one-line description and the country, so that the page can be
+// indexed and found under "Polish Engine" without disclosing anything else.
+// Never put figures, patents, acronyms or technical claims there.
 
 const password = process.argv[2] ?? process.env.PAGE_PASSWORD;
 if (!password) {
@@ -52,27 +53,54 @@ const shell = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Polish Engine &mdash; General Information on the Engine Project</title>
-<meta name="robots" content="noindex, nofollow">
+<title>Polish Engine | Polish R&amp;D Project</title>
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="theme-color" content="#0B0D0F">
 <link rel="canonical" href="${SITE_URL}/">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 
-<meta name="description" content="General Information on the Engine Project. Confidential — internal use only. A password is required to view this document.">
+<meta name="description" content="Polish Engine is a Polish research and development project focused on innovative engine technology.">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="IBS">
-<meta property="og:title" content="Polish Engine">
-<meta property="og:description" content="General Information on the Engine Project. Confidential — internal use only. A password is required to view this document.">
+<meta property="og:site_name" content="Polish Engine">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Polish Engine | Polish R&amp;D Project">
+<meta property="og:description" content="Polish Engine is a Polish research and development project focused on innovative engine technology.">
 <meta property="og:url" content="${SITE_URL}/">
 <meta property="og:image" content="${SITE_URL}/assets/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Polish Engine — General Information on the Engine Project. Confidential, internal use only.">
+<meta property="og:image:alt" content="Polish Engine — Polski Silnik. A Polish research and development project.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Polish Engine">
-<meta name="twitter:description" content="General Information on the Engine Project. Confidential — internal use only. A password is required to view this document.">
+<meta name="twitter:title" content="Polish Engine | Polish R&amp;D Project">
+<meta name="twitter:description" content="Polish Engine is a Polish research and development project focused on innovative engine technology.">
 <meta name="twitter:image" content="${SITE_URL}/assets/og.png">
+<meta name="twitter:image:alt" content="Polish Engine — Polski Silnik. A Polish research and development project.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ResearchProject",
+      "@id": "${SITE_URL}/#project",
+      "name": "Polish Engine",
+      "alternateName": "Polski Silnik",
+      "description": "Polish research and development project focused on innovative engine technology.",
+      "url": "${SITE_URL}/",
+      "location": { "@type": "Country", "name": "Poland" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "${SITE_URL}/#website",
+      "name": "Polish Engine",
+      "alternateName": "Polski Silnik",
+      "url": "${SITE_URL}/",
+      "inLanguage": "en",
+      "about": { "@id": "${SITE_URL}/#project" }
+    }
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600&display=swap" rel="stylesheet">
@@ -117,7 +145,7 @@ body::before {
 .gate {
   position: relative;
   width: 100%;
-  max-width: 410px;
+  max-width: 440px;
   background: linear-gradient(180deg, var(--black-2), rgba(19, 22, 25, .5));
   border: 1px solid var(--line-soft);
   padding: 38px 36px;
@@ -157,21 +185,51 @@ body::before {
 }
 
 h1 {
-  font-size: 1.16rem;
+  font-size: 1.62rem;
   font-weight: 400;
   letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--white);
 }
 
+.lede {
+  margin-top: 16px;
+  font-size: .88rem;
+  line-height: 1.75;
+  color: var(--white-2);
+}
+
+.origin {
+  margin-top: 12px;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.protected {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line-soft);
+}
+
+h2 {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
 .hint {
-  margin-top: 14px;
+  margin-top: 12px;
   font-size: .83rem;
   line-height: 1.75;
   color: var(--gray);
 }
 
-form { margin-top: 26px; display: grid; gap: 12px; }
+form { margin-top: 22px; display: grid; gap: 12px; }
 
 input {
   width: 100%;
@@ -234,20 +292,26 @@ footer {
 </head>
 <body>
 
-<div class="gate">
-  <div class="eyebrow">Restricted</div>
+<main class="gate">
+  <div class="eyebrow">Polish R&amp;D Project</div>
 
-  <h1>Protected document</h1>
-  <p class="hint">This document is confidential and for internal use only. Enter the password to continue.</p>
+  <h1>Polish Engine</h1>
+  <p class="lede">Polish research and development project focused on innovative engine technology.</p>
+  <p class="origin"><span lang="pl">Polski Silnik</span> &mdash; Poland</p>
 
-  <form id="f">
-    <input id="p" type="password" placeholder="Password" autocomplete="current-password" autofocus required>
-    <button id="b" type="submit">Unlock</button>
-    <p class="msg" id="m" role="status" aria-live="polite"></p>
-  </form>
+  <section class="protected" aria-labelledby="protected-title">
+    <h2 id="protected-title">Protected project area</h2>
+    <p class="hint">Enter the password to continue.</p>
+
+    <form id="f">
+      <input id="p" type="password" placeholder="Password" autocomplete="current-password" required>
+      <button id="b" type="submit">Unlock</button>
+      <p class="msg" id="m" role="status" aria-live="polite"></p>
+    </form>
+  </section>
 
   <footer>Exclusive intangible and intellectual property of IBS. All rights reserved.</footer>
-</div>
+</main>
 
 <script>
 const PAYLOAD = {
