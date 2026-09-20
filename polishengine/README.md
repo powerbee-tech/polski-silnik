@@ -55,8 +55,15 @@ does not check for you, but `<t-en>` and `<t-pl>` counts should stay equal.
 
 The deck is a restyled, translated web version of `Polski Silnik deck.pdf`
 (16 slides, kept in Google Drive). The Polish wording is transcribed verbatim and
-the English is a faithful translation of it. The slide order and the reading
-logic of each slide are preserved, including the diagrams: the concentric rings
+the English is a faithful translation of it, written as an English business deck
+rather than word for word: calques of Polish constructions are avoided, and a few
+terms are rendered by their English terms of art instead of literally — `punkt
+wyjścia` as "starting point", `część spalinowa` as "combustion unit", `węzły
+konstrukcyjne` as "design sub-assemblies", `nadzór autorski` as "design
+supervision", `warsztaty` as "repair shops", `koncerny` as "the major
+manufacturers", `sprawność użytkowa` as "effective efficiency", and `maszyny
+matematyczne` as "mathematical machines (computers)". The slide order and the
+reading logic of each slide are preserved, including the diagrams: the concentric rings
 on slide 3 (AKS inside PS inside PSG), the two intersecting circles on slide 5
 (classic combustion engine and Wankel, meeting at PS), the milestone timeline on
 slide 12 and the benefit triangle on slide 15 are redrawn in CSS and inline SVG
@@ -82,6 +89,8 @@ Deliberate departures from the PDF:
   19 cells. Sixteen are now filled from the sources listed below. The three
   remaining development-time-frame rows, for PS, PSG and PSE, read `In
   preparation` and keep the unfinished-field styling.
+- The closing line on slide 16 is English in both languages, and its articles are
+  restored: `turn the unknown into the obvious`, not `turn unknown into obvious`.
 
 Anything else that looks like a transcription error probably is one — report it
 rather than working around it.
