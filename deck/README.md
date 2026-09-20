@@ -19,9 +19,11 @@ directory at `/deck`, so it goes live on the next push to `main`, and a branch
 push gets a preview deployment first. Changing the password is the same command
 with a new value.
 
-This is the second encrypted page in the repository: `build.mjs` at the root
-builds the document served at `/`, and this one builds the deck served at
-`/deck`. They share nothing but the scheme, and each has its own password.
+This is one of three encrypted pages in the repository: `build.mjs` at the root
+builds the document served at `/`, this one builds the deck served at `/deck`, and
+`polishengine-deck/build.mjs` builds the Polish Engine project deck served at
+`/polishengine-deck`. They share nothing but the scheme, and each has its own
+password.
 
 ## Editing from a machine that has no source
 
