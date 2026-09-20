@@ -4,8 +4,8 @@
  * this is how you get an editable source on a machine that has never held it
  * (a fresh clone, a cloud agent, a phone).
  *
- *   node polishengine-deck/unbuild.mjs "<password>"
- *   PAGE_PASSWORD="<password>" node polishengine-deck/unbuild.mjs
+ *   node polishengine/unbuild.mjs "<password>"
+ *   PAGE_PASSWORD="<password>" node polishengine/unbuild.mjs
  *
  * Refuses to overwrite an existing content/deck.html unless --force is passed.
  */
@@ -18,7 +18,7 @@ const force = process.argv.includes('--force');
 
 const password = args[0] ?? process.env.PAGE_PASSWORD;
 if (!password) {
-  console.error('Password required:  node polishengine-deck/unbuild.mjs "<password>"');
+  console.error('Password required:  node polishengine/unbuild.mjs "<password>"');
   process.exit(1);
 }
 
@@ -37,7 +37,7 @@ const shell = await readFile(new URL('index.html', import.meta.url), 'utf8');
 const field = (name) => {
   const match = shell.match(new RegExp(name + ':\\s*"([A-Za-z0-9+/=]+)"'));
   if (!match) {
-    console.error(`Could not find "${name}" in polishengine-deck/index.html — is it a built page?`);
+    console.error(`Could not find "${name}" in polishengine/index.html — is it a built page?`);
     process.exit(1);
   }
   return Uint8Array.from(Buffer.from(match[1], 'base64'));
@@ -45,7 +45,7 @@ const field = (name) => {
 
 const iterations = Number(shell.match(/iterations:\s*(\d+)/)?.[1]);
 if (!iterations) {
-  console.error('Could not find "iterations" in polishengine-deck/index.html — is it a built page?');
+  console.error('Could not find "iterations" in polishengine/index.html — is it a built page?');
   process.exit(1);
 }
 
@@ -66,7 +66,7 @@ try {
     { name: 'AES-GCM', iv: field('iv') }, key, field('data')
   );
 } catch {
-  console.error('Wrong password — could not decrypt polishengine-deck/index.html.');
+  console.error('Wrong password — could not decrypt polishengine/index.html.');
   process.exit(1);
 }
 
@@ -74,4 +74,4 @@ await mkdir(new URL('content/', import.meta.url), { recursive: true });
 await writeFile(target, Buffer.from(plaintext));
 
 const size = (n) => `${(n / 1024).toFixed(1)} kB`;
-console.log(`polishengine-deck/content/deck.html restored — ${size(plaintext.byteLength)}. It is gitignored; keep it that way.`);
+console.log(`polishengine/content/deck.html restored — ${size(plaintext.byteLength)}. It is gitignored; keep it that way.`);

@@ -21,8 +21,8 @@ with a new value.
 
 This is one of three encrypted pages in the repository: `build.mjs` at the root
 builds the document served at `/`, this one builds the deck served at `/deck`, and
-`polishengine-deck/build.mjs` builds the Polish Engine project deck served at
-`/polishengine-deck`. They share nothing but the scheme, and each has its own
+`polishengine/build.mjs` builds the Polish Engine project deck served at
+`/polishengine`. They share nothing but the scheme, and each has its own
 password.
 
 ## Editing from a machine that has no source

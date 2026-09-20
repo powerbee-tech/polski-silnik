@@ -10,6 +10,16 @@
       "source": "/powerbee-visionary-launch/:path*",
       "destination": "https://powerbee.tech/",
       "statusCode": 301
+    },
+    {
+      "source": "/polishengine-deck",
+      "destination": "https://powerbee.tech/polishengine",
+      "statusCode": 301
+    },
+    {
+      "source": "/polishengine-deck/:path*",
+      "destination": "https://powerbee.tech/polishengine",
+      "statusCode": 301
     }
   ],
   "headers": [
@@ -34,7 +44,7 @@
       ]
     },
     {
-      "source": "/polishengine-deck/index.html",
+      "source": "/polishengine/index.html",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, must-revalidate" }
       ]
