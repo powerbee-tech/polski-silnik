@@ -17,6 +17,20 @@ node build.mjs "<password>"
 That rewrites `index.html`. Commit and push it; GitHub Pages serves it from
 `main`. Changing the password is the same command with a new value.
 
+## Editing from a machine that has no source
+
+`index.html` is the only copy of the document in the repository, so recover an
+editable source from it:
+
+```sh
+node unbuild.mjs "<password>"   # writes content/page.html
+# edit content/page.html
+node build.mjs "<password>"     # rewrites index.html
+```
+
+That round trip is what makes it possible to iterate from a fresh clone, a cloud
+agent or a phone with nothing but the password.
+
 ## Relationship to the source document
 
 The rendered page is not a byte-for-byte copy of its source `.docx`. Some
