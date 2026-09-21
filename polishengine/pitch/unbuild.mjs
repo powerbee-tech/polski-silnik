@@ -13,6 +13,8 @@
 import { webcrypto as crypto } from 'node:crypto';
 import { readFile, writeFile, access, mkdir } from 'node:fs/promises';
 
+import { readPayload } from './shell.mjs';
+
 const args = process.argv.slice(2).filter((arg) => arg !== '--force');
 const force = process.argv.includes('--force');
 
@@ -34,20 +36,16 @@ if (!force) {
 
 const shell = await readFile(new URL('index.html', import.meta.url), 'utf8');
 
-const field = (name) => {
-  const match = shell.match(new RegExp(name + ':\\s*"([A-Za-z0-9+/=]+)"'));
-  if (!match) {
-    console.error(`Could not find "${name}" in polishengine/pitch/index.html — is it a built page?`);
-    process.exit(1);
-  }
-  return Uint8Array.from(Buffer.from(match[1], 'base64'));
-};
-
-const iterations = Number(shell.match(/iterations:\s*(\d+)/)?.[1]);
-if (!iterations) {
-  console.error('Could not find "iterations" in polishengine/pitch/index.html — is it a built page?');
+let payload;
+try {
+  payload = readPayload(shell, 'polishengine/pitch/index.html');
+} catch (error) {
+  console.error(error.message);
   process.exit(1);
 }
+
+const { iterations } = payload;
+const field = (name) => Uint8Array.from(Buffer.from(payload[name], 'base64'));
 
 const baseKey = await crypto.subtle.importKey(
   'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
