@@ -980,7 +980,18 @@ function render(html) {
   document.open();
   document.write(html);
   document.close();
-  startViewer();
+
+  /*
+    close() ends the writing, not the parsing: WebKit returns from it with the
+    book's own stylesheet still on its way, and a viewer started here would
+    measure an unstyled page — 377px wide on a phone rather than 1280 — and
+    scale the deck to a size that was never on the screen.
+  */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startViewer, { once: true });
+  } else {
+    startViewer();
+  }
 }
 
 // Stay unlocked while the tab is open.
