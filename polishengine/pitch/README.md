@@ -66,13 +66,22 @@ so printing from the browser produces the pages below — verified pixel for
 pixel against the same document printed without the viewer. A document with no
 `.page` elements is left to scroll as it did.
 
-Two things about the book are worth knowing before editing the viewer. It
-scales itself to the window with a transform of its own, so a page's rendered
-box is not its page box — take the design size from `offsetWidth`, which the
-transform does not touch. And the gradients and filters its light trails are
-painted with live in a zero-sized element beside the pages, which is why what
-is not a page is hidden rather than taken out of the layout: `display: none`
-there leaves the cover and the closing page unpainted.
+Three things are worth knowing before editing the viewer. The book scales
+itself to the window with a transform of its own, so a page's rendered box is
+not its page box — take the design size from `offsetWidth`, which the transform
+does not touch. The gradients and filters its light trails are painted with
+live in a zero-sized element beside the pages, which is why what is not a page
+is hidden rather than taken out of the layout: `display: none` there leaves the
+cover and the closing page unpainted. And `document.close()` ends the writing,
+not the parsing: WebKit returns from it with the book's stylesheet still on its
+way, so the viewer starts on `DOMContentLoaded` and keeps a `ResizeObserver` on
+the first page. Measure a page before its stylesheet reaches it and every
+number the viewer derives is wrong for the rest of the session.
+
+Chrome's parser finishes inside `document.close()` and Safari's does not, so a
+layout bug can be invisible in one engine and ruin the page in the other. The
+viewer is checked in both: Chrome through Puppeteer, Safari through Playwright's
+WebKit on its iPhone profiles.
 
 ## The PDF
 
