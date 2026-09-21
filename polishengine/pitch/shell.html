@@ -187,7 +187,7 @@ footer {
   <div class="eyebrow">Confidential</div>
 
   <h1>Polish Engine &mdash; investor book</h1>
-  <p class="hint">This presentation is confidential and shared by invitation only. Enter the password to continue. Print it to PDF from your browser: 16:9 landscape, background graphics on.</p>
+  <p class="hint">This presentation is confidential and shared by invitation only. Enter the password to continue. It opens as a slide show &mdash; swipe, or use the arrows and the arrow keys.</p>
 
   <form id="f">
     <input id="p" type="password" placeholder="Password" autocomplete="current-password" autofocus required>
@@ -197,6 +197,696 @@ footer {
 
   <footer>Ingenieurb&uuml;ro Sadlak (IBS) &middot; All rights reserved. Do not forward or duplicate without consent.</footer>
 </div>
+
+<script>
+/*
+  The slide viewer.
+
+  The decrypted book is a stack of fixed 1280 x 720 pages laid out for print.
+  Dropped into a browser as-is, a phone shows twenty-nine stamps down a long
+  scroll — legible to nobody. This turns that stack into a presentation: one
+  page at a time, scaled to whatever viewport it lands in, moved with a swipe,
+  the arrow keys or the on-screen arrows.
+
+  It lives in the shell rather than in the encrypted document on purpose. The
+  document stays exactly what it is — a print-ready book — and the whole of the
+  screen behaviour below is confined to @media screen, so Print to PDF from the
+  browser still produces the same twenty-nine pages it always did.
+
+  Nothing here is re-injected after document.write(): the shell's script keeps
+  running across it, so start() simply runs against the new document.
+*/
+
+const VIEWER_CSS = `
+.pe-ui { display: none; }
+
+@media screen {
+  html.pe-on {
+    height: 100%;
+    overflow: hidden;
+    background: #0B0D0F;
+    --pe-drag: 0;
+  }
+
+  html.pe-on body {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #0B0D0F;
+    touch-action: pinch-zoom;
+  }
+
+  /* Wrappers between the pages and the body stop taking part in layout. */
+  html.pe-on .pe-contents { display: contents !important; }
+  html.pe-on .pe-hidden   { display: none !important; }
+
+  html.pe-on .pe-stage {
+    position: fixed !important;
+    inset: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    transform: none !important;
+  }
+
+  /*
+    One transform per page, fed by custom properties. Inline transforms would
+    follow the page into the printed PDF; inline custom properties that only
+    @media screen reads cannot.
+
+    Order matters: rotate() first puts the remaining steps into the frame's
+    own axes, so the carousel offset is the same arithmetic whether the frame
+    is upright or turned a quarter turn on a phone held in portrait.
+  */
+  html.pe-on .pe-page {
+    position: absolute !important;
+    left: 50%;
+    top: 50%;
+    margin: 0 !important;
+    flex: none !important;
+    transform-origin: 50% 50%;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--pe-rot, 0deg))
+      translate(calc((var(--pe-x, 0) + var(--pe-drag, 0)) * 1px), calc(var(--pe-y, 0) * 1px))
+      scale(var(--pe-s, 1));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
+  }
+
+  html.pe-on.pe-animate .pe-page { transition: transform .52s cubic-bezier(.22, .61, .36, 1); }
+  html.pe-on .pe-page.pe-far { visibility: hidden; }
+
+  /* A page being dragged is being turned, not selected. */
+  html.pe-on.pe-drag .pe-page, html.pe-on.pe-drag .pe-page * { -webkit-user-select: none; user-select: none; }
+
+  /* The interface shares the frame, so on a phone in portrait it turns with the page. */
+  html.pe-on .pe-ui {
+    display: block;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--pe-fw, 0) * 1px);
+    height: calc(var(--pe-fh, 0) * 1px);
+    transform: translate(-50%, -50%) rotate(var(--pe-rot, 0deg));
+    z-index: 2147483000;
+    pointer-events: none;
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html.pe-on .pe-ui button { pointer-events: auto; }
+
+  /* The deck's corner brackets, set around the page that is on screen. */
+  .pe-marks {
+    position: absolute;
+    left: calc(var(--pe-slx, 0) * 1px);
+    top: calc(var(--pe-sly, 0) * 1px);
+    width: calc(var(--pe-slw, 0) * 1px);
+    height: calc(var(--pe-slh, 0) * 1px);
+    border: 1px solid rgba(76, 90, 102, .28);
+  }
+
+  .pe-marks i {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 0 solid #FF073A;
+  }
+
+  .pe-marks i:nth-child(1) { top: -1px;    left: -1px;  border-width: 1px 0 0 1px; }
+  .pe-marks i:nth-child(2) { top: -1px;    right: -1px; border-width: 1px 1px 0 0; }
+  .pe-marks i:nth-child(3) { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
+  .pe-marks i:nth-child(4) { bottom: -1px; left: -1px;  border-width: 0 0 1px 1px; }
+
+  .pe-nav {
+    position: absolute;
+    top: calc(50% + var(--pe-y, 0) * 1px);
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    font: inherit;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    background: rgba(11, 13, 15, .55);
+    border: 1px solid rgba(76, 90, 102, .38);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: .72;
+    transition: opacity .18s, border-color .18s, background .18s;
+  }
+
+  .pe-prev { left: calc(var(--pe-navl, 0) * 1px); transform: translate(-50%, -50%); }
+  .pe-next { left: calc(var(--pe-navr, 0) * 1px); transform: translate(-50%, -50%); }
+
+  .pe-nav::before,
+  .pe-nav::after {
+    content: "";
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border: 0 solid #FF073A;
+    opacity: 0;
+    transition: opacity .18s;
+  }
+
+  .pe-nav::before { top: -1px;    left: -1px;  border-width: 1px 0 0 1px; }
+  .pe-nav::after  { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
+
+  .pe-nav:hover,
+  .pe-nav:focus-visible {
+    opacity: 1;
+    outline: none;
+    border-color: rgba(255, 7, 58, .5);
+    background: rgba(166, 5, 37, .22);
+  }
+
+  .pe-nav:hover::before, .pe-nav:hover::after,
+  .pe-nav:focus-visible::before, .pe-nav:focus-visible::after { opacity: 1; }
+
+  .pe-nav[disabled] { opacity: .18; cursor: default; }
+
+  .pe-nav b {
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+
+  .pe-prev b { border-right: 8px solid #FF073A; margin-right: 2px; }
+  .pe-next b { border-left:  8px solid #FF073A; margin-left: 2px; }
+
+  .pe-bar {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--pe-bary, 0) * 1px);
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: calc(100% - 24px);
+  }
+
+  .pe-count {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: .64rem;
+    font-weight: 600;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pe-count .pe-cur   { color: #F7FFFF; }
+  .pe-count .pe-slash { color: #FF073A; }
+  .pe-count .pe-all   { color: #4C5A66; }
+
+  .pe-ticks {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  .pe-tick {
+    flex: 1 1 12px;
+    min-width: 7px;
+    max-width: 18px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .pe-tick::before {
+    content: "";
+    width: 1px;
+    height: 9px;
+    background: rgba(76, 90, 102, .75);
+    transition: height .2s, background .2s, width .2s;
+  }
+
+  .pe-tick:hover::before { background: #AABBBD; height: 13px; }
+  .pe-tick:focus-visible { outline: 1px solid rgba(255, 7, 58, .5); outline-offset: -2px; }
+  .pe-tick[data-seen]::before { background: rgba(170, 187, 189, .5); }
+  .pe-tick[data-on]::before { width: 2px; height: 17px; background: #FF073A; }
+
+  .pe-tool {
+    width: 30px;
+    height: 30px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    cursor: pointer;
+    color: #AABBBD;
+    background: none;
+    border: 1px solid rgba(76, 90, 102, .38);
+    opacity: .75;
+    transition: opacity .18s, border-color .18s, color .18s;
+  }
+
+  .pe-tool:hover,
+  .pe-tool:focus-visible { opacity: 1; outline: none; color: #F7FFFF; border-color: rgba(255, 7, 58, .5); }
+  .pe-tool svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+  .pe-tool[hidden] { display: none; }
+
+  /* Sits beside the bar, on the bar's line, so it never covers the page. */
+  .pe-hint {
+    position: absolute;
+    right: calc(100% + 16px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 13px;
+    white-space: nowrap;
+    font-size: .56rem;
+    font-weight: 600;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: #AABBBD;
+    background: rgba(19, 22, 25, .8);
+    border: 1px solid rgba(76, 90, 102, .38);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: opacity .6s;
+  }
+
+  .pe-hint::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 5px solid #FF073A;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+
+  .pe-hint[data-gone] { opacity: 0; }
+}
+
+@media screen and (prefers-reduced-motion: reduce) {
+  html.pe-on.pe-animate .pe-page { transition: none; }
+}
+`;
+
+const PAGE_W = 1280;
+const PAGE_H = 720;
+
+const ICON_ROTATE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="11"></rect><path d="M9 5.2 A7 7 0 0 1 19 5.2"></path><path d="M9.2 2.6 8.6 5.4 11.4 6"></path></svg>';
+const ICON_EXPAND = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5"></path><path d="M20 15v5h-5"></path><path d="M20 9V4h-5"></path><path d="M4 15v5h5"></path></svg>';
+
+function startViewer() {
+  const pages = Array.from(document.querySelectorAll('.page'));
+
+  // An unrecognised document keeps the behaviour it had: a plain, scrolling page.
+  if (!pages.length) {
+    if (location.hash) {
+      const target = document.querySelector(location.hash);
+      if (target) target.scrollIntoView();
+    }
+    return;
+  }
+
+  const root = document.documentElement;
+  const shared = pages.every((page) => page.parentElement === pages[0].parentElement);
+  const stage = shared ? pages[0].parentElement : document.body;
+
+  // The book declares a print viewport; the phone needs a screen one.
+  let viewport = document.querySelector('meta[name="viewport"]');
+  if (!viewport) {
+    viewport = document.createElement('meta');
+    viewport.setAttribute('name', 'viewport');
+    document.head.appendChild(viewport);
+  }
+  viewport.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+
+  const style = document.createElement('style');
+  style.textContent = VIEWER_CSS;
+  document.head.appendChild(style);
+
+  /*
+    Everything between a page and the body stops taking part in layout, so the
+    pages are positioned against the stage whatever the book wraps them in, and
+    anything at that level holding no page is put away for the duration.
+  */
+  stage.classList.add('pe-stage');
+  for (const page of pages) {
+    for (let node = page.parentElement; node && node !== stage; node = node.parentElement) {
+      node.classList.add('pe-contents');
+    }
+  }
+  for (let node = stage.parentElement; node && node !== document.body; node = node.parentElement) {
+    node.classList.add('pe-contents');
+  }
+  for (const child of Array.from(stage.children)) {
+    if (!child.classList.contains('page') && !child.querySelector('.page')) child.classList.add('pe-hidden');
+  }
+  for (const page of pages) page.classList.add('pe-page');
+
+  const ui = document.createElement('div');
+  ui.className = 'pe-ui';
+  ui.innerHTML =
+    '<div class="pe-marks" aria-hidden="true"><i></i><i></i><i></i><i></i></div>' +
+    '<button class="pe-nav pe-prev" type="button" aria-label="Previous page"><b></b></button>' +
+    '<button class="pe-nav pe-next" type="button" aria-label="Next page"><b></b></button>' +
+    '<div class="pe-bar">' +
+      '<p class="pe-count" role="status" aria-live="polite">' +
+        '<span class="pe-cur">01</span><span class="pe-slash">/</span><span class="pe-all"></span>' +
+      '</p>' +
+      '<div class="pe-ticks"></div>' +
+      '<button class="pe-tool pe-rotate" type="button" aria-label="Turn the page upright"></button>' +
+      '<button class="pe-tool pe-full" type="button" aria-label="Full screen"></button>' +
+      '<p class="pe-hint"></p>' +
+    '</div>';
+  document.body.appendChild(ui);
+
+  const prevButton = ui.querySelector('.pe-prev');
+  const nextButton = ui.querySelector('.pe-next');
+  const currentLabel = ui.querySelector('.pe-cur');
+  const totalLabel = ui.querySelector('.pe-all');
+  const tickRow = ui.querySelector('.pe-ticks');
+  const rotateButton = ui.querySelector('.pe-rotate');
+  const fullButton = ui.querySelector('.pe-full');
+  const hint = ui.querySelector('.pe-hint');
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  totalLabel.textContent = pad2(pages.length);
+
+  const ticks = pages.map((page, index) => {
+    const heading = page.querySelector('h1, h2, h3');
+    const title = heading ? heading.textContent.replace(/\s+/g, ' ').trim().slice(0, 64) : '';
+    const tick = document.createElement('button');
+    tick.type = 'button';
+    tick.className = 'pe-tick';
+    tick.title = title ? pad2(index + 1) + ' \u2014 ' + title : 'Page ' + (index + 1);
+    tick.setAttribute('aria-label', 'Go to page ' + (index + 1) + (title ? ': ' + title : ''));
+    tick.addEventListener('click', () => goTo(index));
+    tickRow.appendChild(tick);
+    return tick;
+  });
+
+  rotateButton.innerHTML = ICON_ROTATE;
+  fullButton.innerHTML = ICON_EXPAND;
+  fullButton.hidden = !root.requestFullscreen;
+
+  let current = 0;
+  let step = window.innerWidth;
+  let upright = null;     // null = follow the viewport, true/false = the reader decided
+  let rotated = false;
+  let farTimer = 0;
+
+  try {
+    const stored = sessionStorage.getItem('pe-upright');
+    if (stored === '1' || stored === '0') upright = stored === '1';
+  } catch (error) { /* private browsing */ }
+
+  const handheld = matchMedia('(pointer: coarse)');
+  hint.textContent = handheld.matches ? 'Swipe' : 'Arrow keys';
+
+  const fit = (frameW, frameH) => {
+    const padX = frameW >= 1100 ? 104 : frameW >= 760 ? 72 : 16;
+    const padTop = frameH >= 700 ? 40 : frameH >= 460 ? 24 : 10;
+    const padBottom = frameH >= 700 ? 92 : frameH >= 460 ? 76 : 54;
+    return {
+      padX, padTop, padBottom,
+      scale: Math.min((frameW - padX * 2) / PAGE_W, (frameH - padTop - padBottom) / PAGE_H),
+    };
+  };
+
+  /*
+    A 16:9 page fitted to the width of a phone held upright is under a third of
+    its design size — a picture of a slide rather than a slide. Turned a quarter
+    turn it is nearly twice that, and turning the phone then un-turns the page
+    and grows it again, which is the gesture the layout is asking for anyway.
+
+    Offered only where it is worth taking and where there is something to turn:
+    a handheld screen, held upright, on which the quarter turn buys at least a
+    quarter more page. A window on a desk is resized, not rotated.
+  */
+  const wantsRotation = () => {
+    if (!handheld.matches || window.innerHeight <= window.innerWidth) return false;
+    return fit(window.innerHeight, window.innerWidth).scale > fit(window.innerWidth, window.innerHeight).scale * 1.25;
+  };
+
+  function layout() {
+    const canRotate = wantsRotation();
+    rotated = canRotate && upright !== true;
+
+    const frameW = rotated ? window.innerHeight : window.innerWidth;
+    const frameH = rotated ? window.innerWidth : window.innerHeight;
+
+    const { padX, padTop, padBottom, scale } = fit(frameW, frameH);
+    const pageW = PAGE_W * scale;
+    const pageH = PAGE_H * scale;
+    const offsetY = (padTop - padBottom) / 2;
+    const gutter = (frameW - pageW) / 2;
+
+    step = frameW;
+
+    root.style.setProperty('--pe-rot', rotated ? '90deg' : '0deg');
+    root.style.setProperty('--pe-s', String(scale));
+    root.style.setProperty('--pe-y', String(offsetY));
+    root.style.setProperty('--pe-fw', String(frameW));
+    root.style.setProperty('--pe-fh', String(frameH));
+
+    root.style.setProperty('--pe-slx', String(gutter));
+    root.style.setProperty('--pe-sly', String(frameH / 2 + offsetY - pageH / 2));
+    root.style.setProperty('--pe-slw', String(pageW));
+    root.style.setProperty('--pe-slh', String(pageH));
+
+    // Arrows sit in the margin the page leaves; where there is none, they rest on its edge.
+    const outside = gutter >= 58;
+    const navX = outside ? gutter / 2 : gutter + 33;
+    root.style.setProperty('--pe-navl', String(navX));
+    root.style.setProperty('--pe-navr', String(frameW - navX));
+
+    const below = frameH - (frameH / 2 + offsetY + pageH / 2);
+    root.style.setProperty('--pe-bary', String(frameH - Math.max(Math.min(below / 2, 46), 26)));
+
+    rotateButton.hidden = !canRotate;
+    rotateButton.setAttribute('aria-label', rotated ? 'Show the page upright' : 'Turn the page sideways');
+
+    place();
+  }
+
+  function place() {
+    for (let index = 0; index < pages.length; index++) {
+      pages[index].style.setProperty('--pe-x', String((index - current) * step));
+    }
+  }
+
+  function goTo(index, options) {
+    const target = Math.max(0, Math.min(pages.length - 1, index));
+    if (target === current && !(options && options.force)) return;
+    current = target;
+    place();
+    update();
+
+    // Deep links survive a reload without filling the reader's back button.
+    const id = pages[current].id;
+    try {
+      history.replaceState(null, '', '#' + (id || 'p' + (current + 1)));
+    } catch (error) { /* file:// */ }
+  }
+
+  function update() {
+    currentLabel.textContent = pad2(current + 1);
+    prevButton.disabled = current === 0;
+    nextButton.disabled = current === pages.length - 1;
+
+    for (let index = 0; index < ticks.length; index++) {
+      const tick = ticks[index];
+      if (index === current) tick.setAttribute('data-on', ''); else tick.removeAttribute('data-on');
+      if (index < current) tick.setAttribute('data-seen', ''); else tick.removeAttribute('data-seen');
+    }
+
+    for (let index = 0; index < pages.length; index++) {
+      pages[index].setAttribute('aria-hidden', index === current ? 'false' : 'true');
+      if (Math.abs(index - current) <= 1) pages[index].classList.remove('pe-far');
+    }
+
+    // Neighbours stay rendered while the move is running, then stand down.
+    clearTimeout(farTimer);
+    farTimer = setTimeout(() => {
+      for (let index = 0; index < pages.length; index++) {
+        pages[index].classList.toggle('pe-far', Math.abs(index - current) > 1);
+      }
+    }, 700);
+  }
+
+  const next = () => goTo(current + 1);
+  const previous = () => goTo(current - 1);
+
+  prevButton.addEventListener('click', previous);
+  nextButton.addEventListener('click', next);
+
+  rotateButton.addEventListener('click', () => {
+    upright = rotated;
+    try { sessionStorage.setItem('pe-upright', upright ? '1' : '0'); } catch (error) { /* private browsing */ }
+    layout();
+  });
+
+  fullButton.addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else root.requestFullscreen().catch(() => {});
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    const key = event.key;
+    // Space and Enter belong to whichever control has the focus.
+    const onControl = event.target && event.target.closest && event.target.closest('button, a[href], input, select, textarea');
+    if (onControl && (key === ' ' || key === 'Enter')) return;
+    if (key === 'ArrowRight' || key === 'ArrowDown' || key === 'PageDown' || key === ' ' || key === 'Enter') {
+      event.preventDefault(); next();
+    } else if (key === 'ArrowLeft' || key === 'ArrowUp' || key === 'PageUp' || key === 'Backspace') {
+      event.preventDefault(); previous();
+    } else if (key === 'Home') {
+      event.preventDefault(); goTo(0);
+    } else if (key === 'End') {
+      event.preventDefault(); goTo(pages.length - 1);
+    } else if (key === 'f' || key === 'F') {
+      fullButton.click();
+    } else if (key === 'Escape' && document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+  });
+
+  // One gesture, one page: a trackpad's tail of momentum must not run off the deck.
+  let wheelSum = 0;
+  let wheelUntil = 0;
+  window.addEventListener('wheel', (event) => {
+    if (event.ctrlKey) return;             // pinch to zoom
+    event.preventDefault();
+    const now = performance.now();
+    if (now < wheelUntil) return;
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    if (delta * wheelSum < 0) wheelSum = 0;
+    wheelSum += delta;
+    if (Math.abs(wheelSum) > 46) {
+      if (wheelSum > 0) next(); else previous();
+      wheelSum = 0;
+      wheelUntil = now + 620;
+    }
+  }, { passive: false });
+
+  const pointers = new Set();
+  let dragId = null;
+  let dragging = false;
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let travel = 0;
+
+  const frameDelta = (event) => {
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    // A quarter turn clockwise puts the frame's x axis down the screen.
+    return rotated ? { along: dy, across: -dx } : { along: dx, across: dy };
+  };
+
+  function endDrag(commit) {
+    const moved = dragging;
+    dragging = false;
+    dragId = null;
+    root.classList.add('pe-animate');
+    root.classList.remove('pe-drag');
+    root.style.setProperty('--pe-drag', '0');
+    if (!moved) return;
+
+    const elapsed = Math.max(1, performance.now() - startTime);
+    const speed = travel / elapsed;
+    if (commit && (travel < -step * 0.13 || speed < -0.45)) next();
+    else if (commit && (travel > step * 0.13 || speed > 0.45)) previous();
+    travel = 0;
+  }
+
+  stage.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (event.target.closest && event.target.closest('.pe-ui')) return;   // the interface is not the deck
+    pointers.add(event.pointerId);
+    if (pointers.size > 1) { endDrag(false); return; }   // two fingers belong to the browser's zoom
+    dragId = event.pointerId;
+    startX = event.clientX;
+    startY = event.clientY;
+    startTime = performance.now();
+    travel = 0;
+  });
+
+  stage.addEventListener('pointermove', (event) => {
+    if (event.pointerId !== dragId || pointers.size > 1) return;
+    const delta = frameDelta(event);
+
+    if (!dragging) {
+      if (Math.abs(delta.along) < 9 || Math.abs(delta.along) < Math.abs(delta.across)) return;
+      dragging = true;
+      root.classList.remove('pe-animate');
+      root.classList.add('pe-drag');
+      const selection = getSelection();
+      if (selection) selection.removeAllRanges();
+      try { stage.setPointerCapture(event.pointerId); } catch (error) { /* already gone */ }
+    }
+
+    travel = delta.along;
+    // The ends of the book resist rather than pull away from the reader.
+    const held = (current === 0 && travel > 0) || (current === pages.length - 1 && travel < 0);
+    root.style.setProperty('--pe-drag', String(held ? travel * 0.32 : travel));
+  });
+
+  const release = (event) => {
+    pointers.delete(event.pointerId);
+    if (event.pointerId === dragId) endDrag(event.type === 'pointerup');
+  };
+  window.addEventListener('pointerup', release);
+  window.addEventListener('pointercancel', release);
+
+  let pending = 0;
+  const relayout = () => {
+    cancelAnimationFrame(pending);
+    pending = requestAnimationFrame(layout);
+  };
+  window.addEventListener('resize', relayout);
+  window.addEventListener('orientationchange', relayout);
+
+  root.classList.add('pe-on');
+  layout();
+
+  // Land on the page a deep link asks for, before anything can animate towards it.
+  let wanted = '';
+  try { wanted = decodeURIComponent(location.hash.slice(1)); } catch (error) { /* a hash we did not write */ }
+  if (wanted) {
+    const numbered = /^p(\d+)$/.exec(wanted);
+    if (numbered) current = Math.max(0, Math.min(pages.length - 1, Number(numbered[1]) - 1));
+    else {
+      const target = document.getElementById(wanted);
+      const page = target && target.closest('.page');
+      if (page) current = Math.max(0, pages.indexOf(page));
+    }
+    place();
+  }
+
+  update();
+  requestAnimationFrame(() => root.classList.add('pe-animate'));
+
+  setTimeout(() => hint.setAttribute('data-gone', ''), 4200);
+  setTimeout(() => hint.remove(), 5200);
+}
+</script>
 
 <script>
 const PAYLOAD = {
@@ -251,10 +941,7 @@ function render(html) {
   document.open();
   document.write(html);
   document.close();
-  if (location.hash) {
-    const target = document.querySelector(location.hash);
-    if (target) target.scrollIntoView();
-  }
+  startViewer();
 }
 
 // Stay unlocked while the tab is open.
