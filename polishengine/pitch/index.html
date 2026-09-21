@@ -540,8 +540,8 @@ function startViewer() {
     the window with a transform of its own, and measuring through that would
     scale an already scaled page.
   */
-  const bookW = pages[0].offsetWidth || PAGE_W;
-  const bookH = pages[0].offsetHeight || PAGE_H;
+  let bookW = pages[0].offsetWidth || PAGE_W;
+  let bookH = pages[0].offsetHeight || PAGE_H;
 
   // The book declares a print viewport; the phone needs a screen one.
   let viewport = document.querySelector('meta[name="viewport"]');
@@ -901,6 +901,22 @@ function startViewer() {
   };
   window.addEventListener('resize', relayout);
   window.addEventListener('orientationchange', relayout);
+
+  /*
+    The page box is read once and then watched: a stylesheet that lands after
+    the viewer starts, or a book that sizes its pages to the reader, changes
+    what a page measures, and everything here is derived from that.
+  */
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => {
+      const width = pages[0].offsetWidth || PAGE_W;
+      const height = pages[0].offsetHeight || PAGE_H;
+      if (width === bookW && height === bookH) return;
+      bookW = width;
+      bookH = height;
+      relayout();
+    }).observe(pages[0]);
+  }
 
   root.classList.add('pe-on');
   layout();
