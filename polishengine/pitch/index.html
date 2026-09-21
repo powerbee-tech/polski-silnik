@@ -244,7 +244,13 @@ const VIEWER_CSS = `
   /* Wrappers between the pages and the body stop taking part in layout. */
   html.pe-on .pe-contents { display: contents !important; }
 
-  html.pe-on .pe-hidden   { display: none !important; }
+  /*
+    Put away, not removed: the book keeps its shared SVG gradients and filters
+    in a zero-sized element of its own at this level, and display: none on that
+    stops the light trails on the cover and the closing page from resolving
+    what they paint with.
+  */
+  html.pe-on .pe-hidden { visibility: hidden !important; }
 
   html.pe-on .pe-stage {
     position: fixed !important;
