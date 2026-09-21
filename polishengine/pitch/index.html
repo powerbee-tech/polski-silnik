@@ -281,6 +281,7 @@ const VIEWER_CSS = `
   }
 
   html.pe-on.pe-animate .pe-page { transition: transform .52s cubic-bezier(.22, .61, .36, 1); }
+  html.pe-on .pe-page.pe-still { transition: none !important; }
   html.pe-on .pe-page.pe-far { visibility: hidden; }
 
   /* A page being dragged is being turned, not selected. */
@@ -690,17 +691,39 @@ function startViewer() {
     place();
   }
 
-  function place() {
+  /*
+    Every page that is not the one on screen waits exactly one step away, on
+    the side it belongs to. A jump from page four to page twenty-two is then
+    the same single slide as a step to page five, rather than eighteen page
+    widths of empty black travelling past at speed.
+
+    Only the page leaving and the page arriving are allowed to make that slide.
+    The rest take their places in the same frame, out of sight, so a jump does
+    not drag a row of other pages across the screen behind it.
+  */
+  function place(leaving) {
+    const moving = leaving === undefined ? null : [leaving, current];
+
     for (let index = 0; index < pages.length; index++) {
-      pages[index].style.setProperty('--pe-x', String((index - current) * step));
+      const page = pages[index];
+      const slot = Math.max(-1, Math.min(1, index - current));
+      const value = String(slot * step);
+      if (page.style.getPropertyValue('--pe-x') === value) continue;
+      if (!moving || moving.indexOf(index) < 0) page.classList.add('pe-still');
+      page.style.setProperty('--pe-x', value);
     }
+
+    requestAnimationFrame(() => {
+      for (const page of pages) page.classList.remove('pe-still');
+    });
   }
 
-  function goTo(index, options) {
+  function goTo(index) {
     const target = Math.max(0, Math.min(pages.length - 1, index));
-    if (target === current && !(options && options.force)) return;
+    if (target === current) return;
+    const leaving = current;
     current = target;
-    place();
+    place(leaving);
     update();
 
     // Deep links survive a reload without filling the reader's back button.
