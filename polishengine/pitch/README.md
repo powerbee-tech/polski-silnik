@@ -66,6 +66,14 @@ so printing from the browser produces the pages below — verified pixel for
 pixel against the same document printed without the viewer. A document with no
 `.page` elements is left to scroll as it did.
 
+Two things about the book are worth knowing before editing the viewer. It
+scales itself to the window with a transform of its own, so a page's rendered
+box is not its page box — take the design size from `offsetWidth`, which the
+transform does not touch. And the gradients and filters its light trails are
+painted with live in a zero-sized element beside the pages, which is why what
+is not a page is hidden rather than taken out of the layout: `display: none`
+there leaves the cover and the closing page unpainted.
+
 ## The PDF
 
 ```sh
