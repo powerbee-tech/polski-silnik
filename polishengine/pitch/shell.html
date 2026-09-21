@@ -504,6 +504,7 @@ const VIEWER_CSS = `
 }
 `;
 
+// What the book's pages measure, if one cannot be measured at run time.
 const PAGE_W = 1280;
 const PAGE_H = 720;
 
@@ -525,6 +526,11 @@ function startViewer() {
   const root = document.documentElement;
   const shared = pages.every((page) => page.parentElement === pages[0].parentElement);
   const stage = shared ? pages[0].parentElement : document.body;
+
+  // Measured while the book is still laid out the way it was written.
+  const first = pages[0].getBoundingClientRect();
+  const bookW = first.width || PAGE_W;
+  const bookH = first.height || PAGE_H;
 
   // The book declares a print viewport; the phone needs a screen one.
   let viewport = document.querySelector('meta[name="viewport"]');
@@ -623,8 +629,8 @@ function startViewer() {
     const padTop = frameH >= 700 ? 40 : frameH >= 460 ? 24 : 10;
     const padBottom = frameH >= 700 ? 92 : frameH >= 460 ? 76 : 54;
     return {
-      padX, padTop, padBottom,
-      scale: Math.min((frameW - padX * 2) / PAGE_W, (frameH - padTop - padBottom) / PAGE_H),
+      padTop, padBottom,
+      scale: Math.min((frameW - padX * 2) / bookW, (frameH - padTop - padBottom) / bookH),
     };
   };
 
@@ -650,9 +656,9 @@ function startViewer() {
     const frameW = rotated ? window.innerHeight : window.innerWidth;
     const frameH = rotated ? window.innerWidth : window.innerHeight;
 
-    const { padX, padTop, padBottom, scale } = fit(frameW, frameH);
-    const pageW = PAGE_W * scale;
-    const pageH = PAGE_H * scale;
+    const { padTop, padBottom, scale } = fit(frameW, frameH);
+    const pageW = bookW * scale;
+    const pageH = bookH * scale;
     const offsetY = (padTop - padBottom) / 2;
     const gutter = (frameW - pageW) / 2;
 
