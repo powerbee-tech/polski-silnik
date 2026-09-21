@@ -1,12 +1,12 @@
 /**
- * Encrypts content/deck.html into a self-contained index.html that asks for a
+ * Encrypts content/pitch.html into a self-contained index.html that asks for a
  * password and decrypts in the browser (PBKDF2-SHA256 -> AES-256-GCM).
  *
  * The published index.html contains only ciphertext, so it is safe in a public
- * repository. content/deck.html must stay out of git.
+ * repository. content/pitch.html must stay out of git.
  *
- *   node deck/build.mjs "<password>"
- *   PAGE_PASSWORD="<password>" node deck/build.mjs
+ *   node polishengine/pitch/build.mjs "<password>"
+ *   PAGE_PASSWORD="<password>" node polishengine/pitch/build.mjs
  */
 
 import { webcrypto as crypto } from 'node:crypto';
@@ -14,22 +14,23 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 const ITERATIONS = 310000;
 
-// Link previews need absolute URLs. Vercel serves this directory at /deck on
-// the canonical host; override SITE_URL to check a preview deployment.
-const SITE_URL = (process.env.SITE_URL ?? 'https://powerbee.tech/deck').replace(/\/$/, '');
+// Link previews need absolute URLs. Vercel serves this directory at
+// /polishengine/pitch on the canonical host; override SITE_URL to check a
+// preview deployment.
+const SITE_URL = (process.env.SITE_URL ?? 'https://powerbee.tech/polishengine/pitch').replace(/\/$/, '');
 
-// Preview metadata below carries the company name only — the hostname already
+// Preview metadata below carries the project name only — the hostname already
 // reveals it. Never put figures, patents or technical claims there: previews are
 // fetched by third-party servers and shown to anyone holding the link, password
 // or not.
 
 const password = process.argv[2] ?? process.env.PAGE_PASSWORD;
 if (!password) {
-  console.error('Password required:  node deck/build.mjs "<password>"');
+  console.error('Password required:  node polishengine/pitch/build.mjs "<password>"');
   process.exit(1);
 }
 
-const plaintext = await readFile(new URL('content/deck.html', import.meta.url));
+const plaintext = await readFile(new URL('content/pitch.html', import.meta.url));
 
 const salt = crypto.getRandomValues(new Uint8Array(16));
 const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -53,34 +54,30 @@ const shell = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PowerBee &mdash; Investor Deck</title>
+<title>Polish Engine &mdash; Investor Book</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0B0D0F">
 <link rel="canonical" href="${SITE_URL}/">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 
-<meta name="description" content="PowerBee investor deck. Confidential — a password is required to view this presentation.">
+<meta name="description" content="Polish Engine investor book. Confidential — a password is required to view this presentation.">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="PowerBee">
-<meta property="og:title" content="PowerBee &mdash; Investor Deck">
+<meta property="og:site_name" content="Polish Engine">
+<meta property="og:title" content="Polish Engine &mdash; Investor Book">
 <meta property="og:description" content="Confidential investor presentation. A password is required to view it.">
 <meta property="og:url" content="${SITE_URL}/">
-<meta property="og:image" content="${SITE_URL}/assets/og.png">
+<meta property="og:image" content="https://powerbee.tech/polishengine/assets/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="PowerBee — Investor Deck. Confidential, password required.">
+<meta property="og:image:alt" content="Polish Engine — Investor Book. Confidential, password required.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PowerBee &mdash; Investor Deck">
+<meta name="twitter:title" content="Polish Engine &mdash; Investor Book">
 <meta name="twitter:description" content="Confidential investor presentation. A password is required to view it.">
-<meta name="twitter:image" content="${SITE_URL}/assets/og.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600&display=swap" rel="stylesheet">
+<meta name="twitter:image" content="https://powerbee.tech/polishengine/assets/og.png">
+<link rel="stylesheet" href="assets/fonts.css">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 :root {
   --black:   #0B0D0F;
@@ -240,8 +237,8 @@ footer {
 <div class="gate">
   <div class="eyebrow">Confidential</div>
 
-  <h1>Investor deck</h1>
-  <p class="hint">This presentation is confidential and shared by invitation only. Enter the password to continue.</p>
+  <h1>Polish Engine &mdash; investor book</h1>
+  <p class="hint">This presentation is confidential and shared by invitation only. Enter the password to continue. Print it to PDF from your browser: 16:9 landscape, background graphics on.</p>
 
   <form id="f">
     <input id="p" type="password" placeholder="Password" autocomplete="current-password" autofocus required>
@@ -249,7 +246,7 @@ footer {
     <p class="msg" id="m" role="status" aria-live="polite"></p>
   </form>
 
-  <footer>PowerBee P.S.A. &middot; All rights reserved. Do not forward or duplicate without consent.</footer>
+  <footer>Ingenieurb&uuml;ro Sadlak (IBS) &middot; All rights reserved. Do not forward or duplicate without consent.</footer>
 </div>
 
 <script>
@@ -291,7 +288,7 @@ form.addEventListener('submit', async (event) => {
 
   try {
     const html = await unlock(input.value);
-    sessionStorage.setItem('unlocked', input.value);
+    sessionStorage.setItem('unlocked-pe', input.value);
     render(html);
   } catch {
     delete msg.dataset.busy;
@@ -305,65 +302,16 @@ function render(html) {
   document.open();
   document.write(html);
   document.close();
-  fitToScreen();
-  window.addEventListener('load', containWideTables);
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
   }
 }
 
-// document.write() replaces this page with the decrypted one, head and all, so
-// nothing the gate declared reaches the document the reader actually ends up
-// on. Restate the mobile metrics there: a viewport for the phone to lay the
-// document out against, no text inflation on top of it, and nothing wide enough
-// to push the layout past the screen. Any of the three opens the document
-// zoomed in, with the full width a pinch away.
-function fitToScreen() {
-  const head = document.head || document.documentElement;
-
-  // A viewport that was parsed out of the written markup is inert — only
-  // inserting the element now makes the browser act on it.
-  for (const stale of document.querySelectorAll('meta[name="viewport"]')) stale.remove();
-
-  const viewport = document.createElement('meta');
-  viewport.name = 'viewport';
-  viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
-  head.appendChild(viewport);
-
-  const style = document.createElement('style');
-  style.textContent = [
-    'html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }',
-    'body { overflow-wrap: break-word; }',
-    'img, video, canvas, iframe { max-width: 100%; height: auto; }',
-    'pre { overflow-x: auto; }',
-    '[data-fit-scroll] { max-width: 100%; overflow-x: auto; }'
-  ].join(' ');
-  head.appendChild(style);
-
-  containWideTables();
-}
-
-// A table too wide for the screen widens the whole layout with it, so give it
-// its own scroll box — but only once it really does not fit, so that nothing
-// moves on a screen with room for it.
-function containWideTables() {
-  for (const table of document.querySelectorAll('table')) {
-    const parent = table.parentElement;
-    if (!parent || parent.hasAttribute('data-fit-scroll')) continue;
-    if (table.getBoundingClientRect().width <= parent.clientWidth + 1) continue;
-
-    const box = document.createElement('div');
-    box.setAttribute('data-fit-scroll', '');
-    parent.insertBefore(box, table);
-    box.appendChild(table);
-  }
-}
-
 // Stay unlocked while the tab is open.
-const remembered = sessionStorage.getItem('unlocked');
+const remembered = sessionStorage.getItem('unlocked-pe');
 if (remembered) {
-  unlock(remembered).then(render).catch(() => sessionStorage.removeItem('unlocked'));
+  unlock(remembered).then(render).catch(() => sessionStorage.removeItem('unlocked-pe'));
 }
 </script>
 
@@ -374,4 +322,4 @@ if (remembered) {
 await writeFile(new URL('index.html', import.meta.url), shell);
 
 const size = (n) => `${(n / 1024).toFixed(1)} kB`;
-console.log(`deck/index.html written — ${size(shell.length)} (payload ${size(ciphertext.byteLength)}, ${ITERATIONS} PBKDF2 iterations)`);
+console.log(`polishengine/pitch/index.html written — ${size(shell.length)} (payload ${size(ciphertext.byteLength)}, ${ITERATIONS} PBKDF2 iterations)`);

@@ -43,6 +43,20 @@ search results:
   architecture, parameters, patents, acronyms, results, roadmap, team or
   partners. Adding any of that to the shell would publish it.
 
+## Editing from a machine that has no source
+
+`index.html` is the only copy of the document in the repository, so recover an
+editable source from it:
+
+```sh
+node unbuild.mjs "<password>"   # writes content/page.html
+# edit content/page.html
+node build.mjs "<password>"     # rewrites index.html
+```
+
+That round trip is what makes it possible to iterate from a fresh clone, a cloud
+agent or a phone with nothing but the password.
+
 ## Relationship to the source document
 
 The rendered page is not a byte-for-byte copy of its source `.docx`. Some

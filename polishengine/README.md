@@ -54,18 +54,23 @@ does not check for you, but `<t-en>` and `<t-pl>` counts should stay equal.
 ## Relationship to the source presentation
 
 The deck is a restyled, translated web version of the source presentation kept
-in Google Drive. The Polish wording is transcribed verbatim, the English is a
-faithful translation of it, and the slide order and the reading logic of each
-slide are preserved. Diagrams are redrawn in CSS and inline SVG rather than
-reproduced as images.
+in Google Drive. The Polish wording is transcribed verbatim; the English is a
+faithful translation of it written as an English business deck rather than word
+for word, so calques of Polish constructions are avoided and a number of terms
+are rendered by their English terms of art. The slide order and the reading
+logic of each slide are preserved, and the diagrams are redrawn in CSS and
+inline SVG rather than reproduced as images.
 
-The deck departs from the source in a number of deliberate ways, and several of
-its rows are filled from documents the source presentation does not contain. The
-itemised list of those departures and their sources lives in
+The deck departs from the source in a number of deliberate ways: in wording, in
+the terms of art chosen for the translation, and in rows filled from documents
+the source presentation does not contain. The itemised list of those departures,
+the translation glossary and the sources behind them live in
 `content/DEVIATIONS.md`, next to the plaintext deck — gitignored and never
 published, because naming a departure or a source means quoting the protected
 material. Read it before concluding that something on the page is a
-transcription error, and record new departures there rather than here.
+transcription error, and record new departures there rather than here. Anything
+else that looks like a transcription error probably is one — report it rather
+than working around it.
 
 This repository is public. Nothing that identifies the technology, the patents,
 the figures, the people or the partners behind the project belongs in any file
