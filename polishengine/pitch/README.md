@@ -25,6 +25,47 @@ To recover an editable source on a machine that has never held one:
 node polishengine/pitch/unbuild.mjs "<password>"   # writes content/pitch.html
 ```
 
+## The shell, and changing it without the password
+
+`shell.html` is the published page with the payload taken out: the password
+gate, and the slide viewer that runs once the book is decrypted. `build.mjs`
+fills in its four placeholders — salt, IV, ciphertext, iteration count.
+
+The shell carries nothing confidential, so working on it should not require the
+book. It does not:
+
+```sh
+node polishengine/pitch/reshell.mjs
+```
+
+That lifts the payload out of the published `index.html`, puts the current
+shell back around it, and checks all four fields came through byte for byte
+before it writes. The same password opens the result. Use `build.mjs` instead
+whenever the book itself has changed.
+
+## On screen
+
+The book is a stack of fixed pages built for print, and a browser handed that
+stack lays it out as a column — on a phone, twenty-nine stamps down a long
+scroll. The viewer in the shell turns it into a presentation instead: one page
+at a time, scaled to the viewport, moved with a swipe, the arrow keys, a
+scroll, the on-screen arrows, or the tick for a page in the bar along the
+bottom. `Home` and `End` jump to the covers, `F` goes full screen, and the
+address bar keeps `#p12`, so a page can be linked to.
+
+A phone held upright fits a 16:9 page at under a third of its design size, so
+there the page and the interface turn a quarter turn together and fill the
+screen at nearly twice that; turning the phone un-turns the page and grows it
+again. The control in the bar opts out of the turn for the session. The turn is
+offered only on a handheld screen, held upright, where it buys at least a
+quarter more page. Pinch to zoom is left to the browser throughout.
+
+None of this reaches the PDF. Every rule is inside `@media screen`, and the
+per-page geometry travels in custom properties rather than inline transforms,
+so printing from the browser produces the pages below — verified pixel for
+pixel against the same document printed without the viewer. A document with no
+`.page` elements is left to scroll as it did.
+
 ## The PDF
 
 ```sh
@@ -132,8 +173,8 @@ filing dates and reach and claims no more.
 
 ## Notes
 
-- Requires Node 18+ for `build.mjs` and `unbuild.mjs` (no dependencies), and
-  Chrome for `pdf.mjs`.
+- Requires Node 18+ for `build.mjs`, `unbuild.mjs` and `reshell.mjs` (no
+  dependencies), and Chrome for `pdf.mjs`.
 - The generated PDF carries the whole presentation in plaintext. It is written
   into `content/`, which is gitignored, and must never be committed or attached
   to anything public.
