@@ -1,6 +1,6 @@
 # Investor deck
 
-Password-protected deck served at `powerbee.tech/deck`. `index.html` is generated
+Password-protected deck served at `powerbee.tech/powerbee`. `index.html` is generated
 and contains only AES-256-GCM ciphertext; the key is derived from the password in
 the browser with PBKDF2-SHA256 (310 000 iterations). Nothing readable ships in
 this repository.
@@ -11,29 +11,33 @@ The plaintext source lives in `content/deck.html`, which is gitignored and must
 never be committed. After editing it, regenerate the published page:
 
 ```sh
-node deck/build.mjs "<password>"
+node powerbee/build.mjs "<password>"
 ```
 
-That rewrites `deck/index.html`. Commit and push it; Vercel serves this
-directory at `/deck`, so it goes live on the next push to `main`, and a branch
+That rewrites `powerbee/index.html`. Commit and push it; Vercel serves this
+directory at `/powerbee`, so it goes live on the next push to `main`, and a branch
 push gets a preview deployment first. Changing the password is the same command
 with a new value.
 
+The deck was served at `/deck` until the directory was renamed. That address and
+everything under it 301s here in `vercel.json`, so the links already shared —
+including the `assets/og.png` a cached link preview points at — keep working.
+
 This is one of three encrypted pages in the repository: `build.mjs` at the root
-builds the document served at `/`, this one builds the deck served at `/deck`, and
-`polishengine/build.mjs` builds the Polish Engine project deck served at
-`/polishengine`. They share nothing but the scheme, and each has its own
-password.
+builds the document served at `/`, this one builds the deck served at
+`/powerbee`, and `polishengine/build.mjs` builds the Polish Engine project deck
+served at `/polishengine`. They share nothing but the scheme, and each has its
+own password.
 
 ## Editing from a machine that has no source
 
-`deck/index.html` is the only copy of the deck in the repository, so recover an
-editable source from it:
+`powerbee/index.html` is the only copy of the deck in the repository, so recover
+an editable source from it:
 
 ```sh
-node deck/unbuild.mjs "<password>"   # writes content/deck.html
+node powerbee/unbuild.mjs "<password>"   # writes content/deck.html
 # edit content/deck.html
-node deck/build.mjs "<password>"     # rewrites index.html
+node powerbee/build.mjs "<password>"     # rewrites index.html
 ```
 
 That round trip is what makes it possible to iterate from a fresh clone, a cloud

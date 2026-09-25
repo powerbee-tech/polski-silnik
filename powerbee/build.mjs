@@ -5,8 +5,8 @@
  * The published index.html contains only ciphertext, so it is safe in a public
  * repository. content/deck.html must stay out of git.
  *
- *   node deck/build.mjs "<password>"
- *   PAGE_PASSWORD="<password>" node deck/build.mjs
+ *   node powerbee/build.mjs "<password>"
+ *   PAGE_PASSWORD="<password>" node powerbee/build.mjs
  */
 
 import { webcrypto as crypto } from 'node:crypto';
@@ -14,9 +14,9 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 const ITERATIONS = 310000;
 
-// Link previews need absolute URLs. Vercel serves this directory at /deck on
+// Link previews need absolute URLs. Vercel serves this directory at /powerbee on
 // the canonical host; override SITE_URL to check a preview deployment.
-const SITE_URL = (process.env.SITE_URL ?? 'https://powerbee.tech/deck').replace(/\/$/, '');
+const SITE_URL = (process.env.SITE_URL ?? 'https://powerbee.tech/powerbee').replace(/\/$/, '');
 
 // Preview metadata below carries the company name only — the hostname already
 // reveals it. Never put figures, patents or technical claims there: previews are
@@ -25,7 +25,7 @@ const SITE_URL = (process.env.SITE_URL ?? 'https://powerbee.tech/deck').replace(
 
 const password = process.argv[2] ?? process.env.PAGE_PASSWORD;
 if (!password) {
-  console.error('Password required:  node deck/build.mjs "<password>"');
+  console.error('Password required:  node powerbee/build.mjs "<password>"');
   process.exit(1);
 }
 
@@ -374,4 +374,4 @@ if (remembered) {
 await writeFile(new URL('index.html', import.meta.url), shell);
 
 const size = (n) => `${(n / 1024).toFixed(1)} kB`;
-console.log(`deck/index.html written — ${size(shell.length)} (payload ${size(ciphertext.byteLength)}, ${ITERATIONS} PBKDF2 iterations)`);
+console.log(`powerbee/index.html written — ${size(shell.length)} (payload ${size(ciphertext.byteLength)}, ${ITERATIONS} PBKDF2 iterations)`);

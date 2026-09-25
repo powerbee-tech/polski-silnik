@@ -1,5 +1,5 @@
 # Plaintext sources — must never be uploaded or served. Unanchored, so these
-# cover both the document at the root and the deck in deck/.
+# cover both the document at the root and the deck in powerbee/.
 content/
 
 # Build tooling and docs are not part of the served site.
